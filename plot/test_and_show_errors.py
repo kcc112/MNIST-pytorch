@@ -20,5 +20,5 @@ def test_and_show_errors(model, device, dataset_test):
 
             if (predicted != target)[0]:
                 print(predicted, target)
-                plt.imshow(data[0][0], cmap='gray')
+                plt.imshow(data[0][0].cpu(), cmap='gray')
                 plt.show()

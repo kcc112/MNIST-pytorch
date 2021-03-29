@@ -25,14 +25,20 @@ accuracy_list = []
 
 count = 0
 
+stop = False
+
+stop_value = 0.0005
+
+PATH = 'custom_model_2.pt'
 
 # Parametaers
 batch_size = 100
 
 learning_rate = 0.001
 
-num_epochs = 1
+num_epochs = 10
 
+momentum = 0.5
 
 # Data load
 transform = transforms.Compose([transforms.ToTensor()])
@@ -63,11 +69,15 @@ device = torch.device(dev)
 # Create model
 model = custom_model.CNNModel().to(device)
 
+# Load model
+# model.load_state_dict(torch.load(PATH))
+
 # Draw model summary
 summary(model, input_size=(1, 28, 28), device=dev)
 
 # Setup optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+# optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
 
 # Setup loss function
 error = nn.CrossEntropyLoss()
@@ -85,6 +95,9 @@ start_time = time.time()
 for epoch in range(num_epochs):
     # Tells model that is going to be trained
     model.train()
+
+    if stop:
+        break
 
     # In this case data = images and target = labels
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -109,6 +122,10 @@ for epoch in range(num_epochs):
 
         count += 1
 
+        if loss.data.cpu() <= stop_value:
+            print("Stop condition achieved loss.data", stop_value)
+            stop = True
+
         if (batch_idx + 1) % 10 == 0:
             # Switch to eval mode
             model.eval()
@@ -132,10 +149,15 @@ for epoch in range(num_epochs):
 
              # Switch to tain mode
             model.train()
+        
+        if stop:
+            break
 
     # Adjust learning rate
     scheduler.step()
 
+# SAVE MODEL
+# torch.save(model.state_dict(), PATH)
 
 # VISUALIZATION LOSS AND ACCURACY
 
